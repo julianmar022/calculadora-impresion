@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotiza tu impresión · Estudio sin fondo</title>
+<meta name="robots" content="noindex">
+<style>html,body{margin:0;background:#16181c}body{min-height:100vh}</style>
+</head>
+<body>
+<div id="calc-impresion">
+<style>
+  #calc-impresion {
+    --tinta:#16181c;--tinta-2:#24272e;--papel:#ece7dc;--ambar:#e8a33d;
+    --verde:#7fa66a;--rojo:#c96a5a;--linea:rgba(236,231,220,.14);
+    --sans:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    all:initial;display:block;font-family:var(--sans);background:var(--tinta);
+    color:var(--papel);padding:clamp(20px,4vw,44px);border-radius:2px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  #calc-impresion *,#calc-impresion *::before,#calc-impresion *::after{box-sizing:border-box}
+  #calc-impresion .ci-head{margin-bottom:30px;max-width:62ch}
+  #calc-impresion .ci-title{font-size:clamp(23px,3.4vw,33px);font-weight:600;letter-spacing:-.022em;margin:0 0 8px}
+  #calc-impresion .ci-sub{margin:0;font-size:14.5px;color:rgba(236,231,220,.62)}
+  #calc-impresion .ci-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:34px;align-items:start}
+  @media(max-width:780px){#calc-impresion .ci-grid{grid-template-columns:1fr;gap:30px}}
+  #calc-impresion .ci-form{border:1px solid var(--linea);padding:22px;background:var(--tinta-2)}
+  #calc-impresion .ci-legend{font-size:12.5px;color:rgba(236,231,220,.55);margin:0 0 16px}
+  #calc-impresion .ci-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  #calc-impresion .ci-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  #calc-impresion .ci-field label{font-size:13px;color:rgba(236,231,220,.72)}
+  #calc-impresion input[type="number"],#calc-impresion select{
+    font-family:inherit;font-size:15.5px;color:var(--papel);background:#101216;
+    border:1px solid rgba(236,231,220,.2);padding:9px 11px;border-radius:2px;width:100%;
+    min-width:0;font-variant-numeric:tabular-nums;
+  }
+  #calc-impresion input[type="number"]:focus,#calc-impresion select:focus,
+  #calc-impresion button:focus-visible{outline:2px solid var(--ambar);outline-offset:1px}
+  #calc-impresion select{appearance:none;cursor:pointer;
+    background-image:linear-gradient(45deg,transparent 50%,rgba(236,231,220,.6) 50%),
+    linear-gradient(135deg,rgba(236,231,220,.6) 50%,transparent 50%);
+    background-position:calc(100% - 17px) 52%,calc(100% - 12px) 52%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px}
+  #calc-impresion select option{background:#101216;color:var(--papel)}
+
+  /* checkboxes */
+  #calc-impresion .ci-opts{margin-bottom:16px;display:flex;flex-direction:column;gap:10px}
+  #calc-impresion .ci-opt{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px}
+  #calc-impresion .ci-opt input[type="checkbox"]{
+    appearance:none;-webkit-appearance:none;width:18px;height:18px;min-width:18px;
+    border:1.5px solid rgba(236,231,220,.35);border-radius:2px;background:transparent;
+    cursor:pointer;margin-top:2px;position:relative;transition:background .12s,border-color .12s;
+  }
+  #calc-impresion .ci-opt input[type="checkbox"]:checked{background:var(--ambar);border-color:var(--ambar)}
+  #calc-impresion .ci-opt input[type="checkbox"]:checked::after{
+    content:'✓';position:absolute;top:-1px;left:2px;font-size:13px;color:#16181c;font-weight:700;
+  }
+  #calc-impresion .ci-opt input:disabled{opacity:.35;cursor:not-allowed}
+  #calc-impresion .ci-opt-text{display:flex;flex-direction:column;gap:1px}
+  #calc-impresion .ci-opt-label{color:var(--papel)}
+  #calc-impresion .ci-opt-note{font-size:12px;color:rgba(236,231,220,.45)}
+  #calc-impresion .ci-opt.ci-disabled .ci-opt-label{color:rgba(236,231,220,.35)}
+
+  #calc-impresion .ci-live{
+    display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+    padding:15px 0;border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);margin:4px 0 16px;
+  }
+  #calc-impresion .ci-live-num{font-size:30px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  #calc-impresion .ci-live-unit{font-size:12.5px;color:rgba(236,231,220,.6);text-align:right}
+  #calc-impresion .ci-warn{display:none;font-size:13px;color:var(--rojo);margin-bottom:14px;border-left:2px solid var(--rojo);padding-left:10px}
+  #calc-impresion .ci-warn.ci-on{display:block}
+  #calc-impresion .ci-add{
+    font-family:inherit;font-size:15px;font-weight:550;cursor:pointer;
+    background:var(--ambar);color:#16181c;border:0;border-radius:2px;
+    padding:11px 18px;width:100%;transition:background .15s ease;
+  }
+  #calc-impresion .ci-add:hover{background:#f0b256}
+  #calc-impresion .ci-add:disabled{background:rgba(236,231,220,.16);color:rgba(236,231,220,.4);cursor:not-allowed}
+
+  #calc-impresion .ci-order-head{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--linea);margin-bottom:4px}
+  #calc-impresion .ci-order-title{font-size:16px;font-weight:600}
+  #calc-impresion .ci-count{font-size:13px;color:rgba(236,231,220,.55)}
+  #calc-impresion .ci-empty{font-size:14px;color:rgba(236,231,220,.45);padding:26px 0}
+  #calc-impresion .ci-line{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--linea)}
+  #calc-impresion .ci-line-main{min-width:0}
+  #calc-impresion .ci-line-name{font-size:15px}
+  #calc-impresion .ci-line-meta{font-size:12.5px;color:rgba(236,231,220,.55);margin-top:3px}
+  #calc-impresion .ci-line-price{font-size:15.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  #calc-impresion .ci-del{font-family:inherit;font-size:17px;line-height:1;cursor:pointer;background:none;border:0;color:rgba(236,231,220,.4);padding:2px 4px}
+  #calc-impresion .ci-del:hover{color:var(--rojo)}
+  #calc-impresion .ci-total{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:16px;padding-top:15px;border-top:2px solid var(--papel)}
+  #calc-impresion .ci-total-label{font-size:16px;font-weight:600}
+  #calc-impresion .ci-total-num{font-size:34px;font-weight:650;letter-spacing:-.024em;font-variant-numeric:tabular-nums}
+  #calc-impresion .ci-foot{font-size:12px;color:rgba(236,231,220,.42);margin-top:18px;max-width:56ch}
+  @media(prefers-reduced-motion:reduce){#calc-impresion *{transition:none!important}}
+</style>
+
+<div class="ci-head">
+  <h2 class="ci-title">Cotiza tu impresión</h2>
+  <p class="ci-sub">Ingresa el tamaño y la cantidad. Puedes agregar varias impresiones a la misma cotización.</p>
+</div>
+
+<div class="ci-grid">
+  <div class="ci-form">
+    <p class="ci-legend">Máximo imprimible: 61 cm de ancho × 200 cm de largo</p>
+
+    <div class="ci-row">
+      <div class="ci-field">
+        <label for="ci-w">Ancho (cm)</label>
+        <input type="number" id="ci-w" value="50" min="1" max="200" step="0.5">
+      </div>
+      <div class="ci-field">
+        <label for="ci-h">Alto (cm)</label>
+        <input type="number" id="ci-h" value="70" min="1" max="200" step="0.5">
+      </div>
+    </div>
+
+    <div class="ci-row">
+      <div class="ci-field">
+        <label for="ci-p">Papel</label>
+        <select id="ci-p">
+          <option value="bond">Bond recubierto · 170 g</option>
+          <option value="fuji" selected>Fujifilm Lustre · 190 g</option>
+        </select>
+      </div>
+      <div class="ci-field">
+        <label for="ci-q">Cantidad</label>
+        <input type="number" id="ci-q" value="1" min="1" max="999" step="1">
+      </div>
+    </div>
+
+    <div class="ci-opts">
+      <label class="ci-opt" id="ci-opt-lam">
+        <input type="checkbox" id="ci-lam">
+        <span class="ci-opt-text">
+          <span class="ci-opt-label">Laminado (vinilo mate)</span>
+          <span class="ci-opt-note">Protege de roces, huellas y humedad</span>
+        </span>
+      </label>
+      <label class="ci-opt" id="ci-opt-mon">
+        <input type="checkbox" id="ci-mon">
+        <span class="ci-opt-text">
+          <span class="ci-opt-label">Montaje sobre madera (MDF 9 mm)</span>
+          <span class="ci-opt-note" id="ci-mon-note">Listo para colgar · desde 20 × 30 cm</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="ci-live">
+      <span class="ci-live-num" id="ci-live">$40.000</span>
+      <span class="ci-live-unit" id="ci-liveunit">1 copia</span>
+    </div>
+
+    <p class="ci-warn" id="ci-warn">Ese tamaño no cabe: el máximo es 61 cm de ancho por 200 cm de largo.</p>
+
+    <button class="ci-add" id="ci-add">Agregar cotización</button>
+  </div>
+
+  <div class="ci-order">
+    <div class="ci-order-head">
+      <span class="ci-order-title">Tu cotización</span>
+      <span class="ci-count" id="ci-count"></span>
+    </div>
+    <div id="ci-lines"><p class="ci-empty">Todavía no has agregado nada.</p></div>
+    <div class="ci-total">
+      <span class="ci-total-label">Total cotizado</span>
+      <span class="ci-total-num" id="ci-total">$0</span>
+    </div>
+    <p class="ci-foot">Precios en pesos colombianos. Entre más copias del mismo tamaño, menor el precio por unidad. El laminado y el montaje se cotizan sobre la impresión.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ====== CONFIGURACIÓN ======
+  var CFG = {
+    papeles: {
+      bond: { nombre: "Bond recubierto · 170 g", ref50x70: 28000, manejo: 5000 },
+      fuji: { nombre: "Fujifilm Lustre · 190 g", ref50x70: 40000, manejo: 6000 }
+    },
+    laminado: { manejo: 2300, pieza: 5091,  r: 2.1739 },
+    montaje:  { manejo: 3400, pieza: 27462, r: 6.8966, minArea: 20 * 30 },
+    areaRef: 50 * 70,
+    maxAncho: 61,
+    maxLado: 200
+  };
+
+  function precioCm2(papel) {
+    var c = CFG.papeles[papel];
+    return (c.ref50x70 - c.manejo) / CFG.areaRef;
+  }
+
+  function cotizar(w, h, papel, q, lam, mon) {
+    var cfg = CFG.papeles[papel];
+    var area = w * h;
+
+    // impresión
+    var impUnit = area * precioCm2(papel);
+    var impTot  = cfg.manejo + q * impUnit;
+
+    // laminado
+    var lamTot = 0;
+    if (lam) lamTot = CFG.laminado.manejo + q * (CFG.laminado.pieza + area * CFG.laminado.r);
+
+    // montaje
+    var monTot = 0;
+    if (mon && area >= CFG.montaje.minArea) {
+      monTot = CFG.montaje.manejo + q * (CFG.montaje.pieza + area * CFG.montaje.r);
+    }
+
+    var total = impTot + lamTot + monTot;
+    return {
+      area: area, total: Math.round(total), unitario: Math.round(total / q),
+      lam: lam, mon: mon && area >= CFG.montaje.minArea
+    };
+  }
+
+  function cop(n) { return "$" + Math.round(n).toLocaleString("es-CO"); }
+  function cabe(w, h) { return Math.min(w, h) <= CFG.maxAncho && Math.max(w, h) <= CFG.maxLado; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var elW = $("ci-w"), elH = $("ci-h"), elP = $("ci-p"), elQ = $("ci-q");
+  var elLam = $("ci-lam"), elMon = $("ci-mon");
+  var elOptMon = $("ci-opt-mon"), elMonNote = $("ci-mon-note");
+  var elLive = $("ci-live"), elLiveUnit = $("ci-liveunit");
+  var elWarn = $("ci-warn"), elAdd = $("ci-add");
+  var elLines = $("ci-lines"), elTotal = $("ci-total"), elCount = $("ci-count");
+
+  var pedido = [];
+
+  function leer() {
+    var w = parseFloat(elW.value) || 0, h = parseFloat(elH.value) || 0;
+    return { w: w, h: h, p: elP.value,
+             q: Math.max(1, parseInt(elQ.value, 10) || 1),
+             lam: elLam.checked, mon: elMon.checked };
+  }
+
+  function refrescar() {
+    var v = leer();
+    var ok = v.w > 0 && v.h > 0 && cabe(v.w, v.h);
+    elWarn.classList.toggle("ci-on", v.w > 0 && v.h > 0 && !cabe(v.w, v.h));
+    elAdd.disabled = !ok;
+
+    // montaje: habilitar solo desde 20×30
+    var area = v.w * v.h;
+    var monOk = area >= CFG.montaje.minArea;
+    elMon.disabled = !monOk;
+    elOptMon.classList.toggle("ci-disabled", !monOk);
+    if (!monOk && elMon.checked) elMon.checked = false;
+    elMonNote.textContent = monOk
+      ? "Listo para colgar · MDF 9 mm"
+      : "Disponible desde 20 × 30 cm";
+
+    if (!ok) { elLive.textContent = "—"; elLiveUnit.textContent = ""; return; }
+
+    var r = cotizar(v.w, v.h, v.p, v.q, v.lam, v.mon);
+    elLive.textContent = cop(r.total);
+
+    var extras = [];
+    if (r.lam) extras.push("laminado");
+    if (r.mon) extras.push("montaje");
+    var extraStr = extras.length ? " + " + extras.join(" + ") : "";
+
+    elLiveUnit.textContent = v.q === 1
+      ? "1 copia" + extraStr
+      : v.q + " copias · " + cop(r.unitario) + " c/u" + extraStr;
+  }
+
+  function pintar() {
+    if (!pedido.length) {
+      elLines.innerHTML = '<p class="ci-empty">Todavía no has agregado nada.</p>';
+      elTotal.textContent = "$0"; elCount.textContent = ""; return;
+    }
+    var html = "", total = 0, copias = 0;
+    pedido.forEach(function (it, i) {
+      var r = cotizar(it.w, it.h, it.p, it.q, it.lam, it.mon);
+      total += r.total; copias += it.q;
+      var extras = [];
+      if (r.lam) extras.push("laminado");
+      if (r.mon) extras.push("montaje");
+      var extraStr = extras.length ? " · " + extras.join(" + ") : "";
+      html += '<div class="ci-line">'
+        + '<div class="ci-line-main">'
+        + '<div class="ci-line-name">' + it.w + " × " + it.h + " cm · " + CFG.papeles[it.p].nombre + '</div>'
+        + '<div class="ci-line-meta">' + it.q + (it.q === 1 ? " copia" : " copias")
+        + " · " + cop(r.unitario) + " c/u" + extraStr + '</div>'
+        + '</div>'
+        + '<div class="ci-line-price">' + cop(r.total) + '</div>'
+        + '<button class="ci-del" data-i="' + i + '" aria-label="Quitar">&times;</button>'
+        + '</div>';
+    });
+    elLines.innerHTML = html;
+    elTotal.textContent = cop(total);
+    elCount.textContent = copias + (copias === 1 ? " copia" : " copias");
+
+    Array.prototype.forEach.call(elLines.querySelectorAll(".ci-del"), function (b) {
+      b.addEventListener("click", function () {
+        pedido.splice(parseInt(b.dataset.i, 10), 1); pintar();
+      });
+    });
+  }
+
+  [elW, elH, elP, elQ, elLam, elMon].forEach(function (el) {
+    el.addEventListener("input", refrescar);
+    el.addEventListener("change", refrescar);
+  });
+
+  elAdd.addEventListener("click", function () {
+    var v = leer();
+    if (!cabe(v.w, v.h) || v.w <= 0 || v.h <= 0) return;
+    var igual = pedido.find(function (it) {
+      return it.w === v.w && it.h === v.h && it.p === v.p && it.lam === v.lam && it.mon === v.mon;
+    });
+    if (igual) { igual.q += v.q; }
+    else { pedido.push({ w: v.w, h: v.h, p: v.p, q: v.q, lam: v.lam, mon: v.mon }); }
+    pintar();
+  });
+
+  refrescar(); pintar();
+})();
+</script>
+</div>
+</body>
+</html>
